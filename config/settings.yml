@@ -1,0 +1,7 @@
+plugins:
+  change_username_enabled:
+    default: true
+    client: true
+  change_username_cooldown:
+    default: 365
+    client: true

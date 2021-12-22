@@ -1,0 +1,4 @@
+en:
+  site_settings:
+    change_username_enabled: "Enable plugin"
+    change_username_cooldown: "Time between username changes (in days)"
