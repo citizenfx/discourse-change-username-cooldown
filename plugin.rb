@@ -38,16 +38,14 @@ after_initialize do
         object.user_custom_fields.find_by(name: 'username_changed_at')&.value
     end
 
-    add_to_serializer(:user, :username_change_available_in) do
+    add_to_serializer(:user, :username_change_available_on) do
         last_changed = object.user_custom_fields.find_by(name: 'username_changed_at')&.value
 
         unless last_changed.nil?
             last_changed = DateTime.parse(last_changed)
             cooldown = SiteSetting.change_username_cooldown.days
 
-            if Time.current < last_changed + cooldown
-                return Class.new.extend(ActionView::Helpers::DateHelper).time_ago_in_words(last_changed + cooldown)
-            end
+            last_changed + cooldown
         end
     end
 
@@ -57,7 +55,7 @@ after_initialize do
         user = User.find_by(username: new_username)
 
         user.user_custom_fields.find_or_initialize_by(name: 'username_changed_at').tap do |custom_field|
-            custom_field.value = Time.current
+            custom_field.value = Time.current.iso8601
             custom_field.save
         end
     end
