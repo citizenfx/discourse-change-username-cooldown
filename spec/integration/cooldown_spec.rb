@@ -4,7 +4,7 @@ require 'rails_helper'
 
 describe 'Cooldown' do
     let(:original_change_period) { SiteSetting.username_change_period }
-    let(:time) { Time.current }
+    let(:time) { DateTime.now }
 
     before do
         SiteSetting.username_change_period = 0
@@ -32,7 +32,7 @@ describe 'Cooldown' do
 
         describe 'when change username is available' do
             before do
-                user.user_custom_fields.create(name: 'username_changed_at', value: time - SiteSetting.change_username_cooldown.days)
+                user.user_custom_fields.create(name: 'username_changed_at', value: time)
             end
 
             it 'should return proper payload' do
@@ -52,13 +52,17 @@ describe 'Cooldown' do
             end
 
             it 'should return the proper payload' do
-                get "/u/#{user.username}.json"
+                freeze_time(time) do
+                    get "/u/#{user.username}.json"
 
-                body = JSON.parse(response.body)
+                    body = JSON.parse(response.body) 
 
-                expect(body['user']['can_edit_username']).to be(false)
-                expect(body['user']['username_changed_at']).to eq(time.to_s)
-                expect(body['user']['username_change_available_in']).to eq('1y')
+                    expected_date = (time + SiteSetting.change_username_cooldown.days).change(usec: 0)
+
+                    expect(body['user']['can_edit_username']).to be(false)
+                    expect(body['user']['username_changed_at']).to eq(time.to_s)
+                    expect(DateTime.parse(body['user']['username_change_available_on'])).to eq(expected_date)
+                end
             end
         end
     end
