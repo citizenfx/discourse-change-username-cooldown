@@ -9,7 +9,7 @@ after_initialize do
         original_update_username = singleton_method(:update_username)
 
         define_singleton_method(:update_username) do |attrs|
-            return original_update_username.call(attrs) unless SiteSetting.change_username_enabled
+            return original_update_username.call(**attrs) unless SiteSetting.change_username_enabled
 
             user = User.find(attrs[:user_id])
             user.user_custom_fields.find_or_initialize_by(name: 'username_changed_at').tap do |custom_field|
@@ -17,7 +17,7 @@ after_initialize do
                 custom_field.save
             end
 
-            original_update_username.call(attrs)
+            original_update_username.call(**attrs)
         end
     end
 
